@@ -1,0 +1,45 @@
+name: graphs
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  output_graph:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+          architecture: "x64"
+      - name: Get Python version
+        run: python -V
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run insert_data
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          REPO_NAME: ${{ secrets.REPO_NAME }}
+          FILE_SHINO: ${{ secrets.FILE_SHINO }}
+          FILE_SAMO: ${{ secrets.FILE_SAMO }}
+          FILE_KIKUMIYA: ${{ secrets.FILE_KIKUMIYA }}
+          FILE_UTUMI: ${{ secrets.FILE_UTUMI }}
+        run: python scripts/insert_data.py
+      - name: git setting
+        run: |
+          git config --global user.email "rinjyou0031@toki.waseda.jp"
+          git config --global user.name "namekosiru"
+      - name: git push
+        run: |
+          git add .
+          git commit -m "update database"
+          git push -f origin master
+      - name: Run util_plot.py
+        env:
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+        run: python scripts/util_plot.py
